@@ -31,6 +31,11 @@ rm -f "$TARGET/megamind.d81"
   -write "$TARGET/eth.bin" eth.bin \
   -write "$TARGET/megamind.cfg" megamind.cfg,s
 
+IMAGE="${ROOT}/image"
+mkdir -p "$IMAGE"
+cp "$TARGET/megamind.d81" "$IMAGE/megamind.d81"
+
 echo "OK: $TARGET/megamind.d81"
-ls -la "$TARGET/megamind.d81" "$TARGET/megamind.prg"
+echo "OK: $IMAGE/megamind.d81"
+ls -la "$TARGET/megamind.d81" "$TARGET/megamind.prg" "$IMAGE/megamind.d81"
 "$C1541" "$TARGET/megamind.d81" -list
