@@ -1,0 +1,7 @@
+target/
+*.prg
+*.d81
+*.lst
+.env
+gateway/.env
+*.token

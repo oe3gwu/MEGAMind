@@ -1,0 +1,81 @@
+# LiteLLM HTTP Gateway (Docker Compose) — AI installer prompt
+
+Install LiteLLM as a local HTTP gateway on this system **using Docker Compose only**. No database.
+
+## Goal
+
+- Local HTTP only (no HTTPS/TLS on the LAN listener)
+- Bind `0.0.0.0` so LAN devices (retro / MEGA65) can reach it
+- Upstream over HTTPS: `https://llm2go-api.scch.at/v1` (or the URL the operator provides)
+- OpenAI-compatible path: `/v1/chat/completions`
+- Default model: `Qwen/Qwen3.8-27B-FP8`
+- No Postgres/Redis/DB — LiteLLM proxy container only
+- Autostart via Docker `restart: unless-stopped`
+
+## Work steps
+
+1. Check Docker and Docker Compose. Install them if missing.
+2. Create an install directory, e.g. `/opt/litellm-gateway/` (or use this repo’s `gateway/` folder).
+3. Write `docker-compose.yml`. Prefer reading secrets from a `.env` file; do not hard-code real API keys into committed files:
+
+```yaml
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: litellm-gateway
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-retrosystem}
+      - LLM2GO_API_KEY=${LLM2GO_API_KEY}
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    command: ["--config", "/app/config.yaml", "--host", "0.0.0.0", "--port", "4000"]
+```
+
+4. Write `config.yaml` next to it:
+
+```yaml
+model_list:
+  - model_name: Qwen/Qwen3.8-27B-FP8
+    litellm_params:
+      model: openai/Qwen/Qwen3.8-27B-FP8
+      api_base: https://llm2go-api.scch.at/v1
+      api_key: os.environ/LLM2GO_API_KEY
+
+litellm_settings:
+  drop_params: true
+```
+
+5. Create `.env` with:
+   - `LITELLM_MASTER_KEY` — Bearer token for LAN clients (default `retrosystem` if the operator agrees)
+   - `LLM2GO_API_KEY` — upstream API key supplied by the operator
+6. Start: `docker compose up -d`
+7. Verify:
+
+```bash
+curl -sS -X POST "http://127.0.0.1:4000/v1/chat/completions" \
+  -H "Authorization: Bearer retrosystem" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "Qwen/Qwen3.8-27B-FP8",
+    "messages": [{"role": "user", "content": "ping"}],
+    "max_tokens": 16
+  }'
+```
+
+(Use the same Bearer value as `LITELLM_MASTER_KEY`.)
+
+## Final report
+
+Print: host LAN IP, port `4000`, path `/v1/chat/completions`, model name, compose directory path, and a short curl result summary.
+
+## Client settings (MEGAMind / MEGA65)
+
+- Host: Docker host LAN IP or DNS name
+- Port: `4000`
+- Path: `/v1/chat/completions`
+- Token: `LITELLM_MASTER_KEY`
+- Model: `Qwen/Qwen3.8-27B-FP8`
+- HTTP only (no HTTPS)

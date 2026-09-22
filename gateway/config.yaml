@@ -1,0 +1,10 @@
+# LiteLLM model routing — OpenAI-compatible upstream over HTTPS
+model_list:
+  - model_name: Qwen/Qwen3.8-27B-FP8
+    litellm_params:
+      model: openai/Qwen/Qwen3.8-27B-FP8
+      api_base: https://llm2go-api.scch.at/v1
+      api_key: os.environ/LLM2GO_API_KEY
+
+litellm_settings:
+  drop_params: true
