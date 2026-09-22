@@ -9,8 +9,10 @@ Header: **MEGAMind - Inference Chat**
 | Document | Purpose |
 |----------|---------|
 | [This README](README.md) | Overview, BASIC program, usage, build |
+| [gateway/README.md](gateway/README.md) | Gateway folder overview + env vars |
 | [gateway/INSTALL.md](gateway/INSTALL.md) | Manual Docker Compose LiteLLM install |
-| [litellm-gateway-prompt.txt](litellm-gateway-prompt.txt) | Prompt for an AI agent to install the gateway |
+| [gateway/AI_INSTALLER.md](gateway/AI_INSTALLER.md) | **AI installer** — paste into an agent to install the gateway |
+| [image/megamind.d81](image/megamind.d81) | Prebuilt D81 disk image |
 
 Repository: https://github.com/oe3gwu/MEGAMind
 
@@ -32,13 +34,15 @@ config/megamind.cfg         — default API config (shipped on disk)
 vendor/eth.bin              — Mega-IP library
 tools/build_d81.sh          — petcat + c1541 → D81
 tools/run_xemu.sh           — xemu MEGA65 launcher
-gateway/                    — LiteLLM Docker Compose install
+image/megamind.d81          — distributable disk image
+gateway/                    — LiteLLM Docker Compose + installers
+  README.md                 — env var overview
+  INSTALL.md                — manual install
+  AI_INSTALLER.md           — AI agent installer prompt
   docker-compose.yml
   config.yaml
   .env.sample
-  INSTALL.md
-litellm-gateway-prompt.txt  — AI installer prompt (English)
-target/                     — build outputs (gitignored)
+target/                     — local build outputs (gitignored)
 ```
 
 ---
@@ -93,7 +97,7 @@ Startup:
 
 ### On real MEGA65 hardware
 
-1. Build or obtain `target/megamind.d81` (see [Build](#build)).
+1. Use `image/megamind.d81` or build with `./tools/build_d81.sh` (see [Build](#build)).
 2. Copy the D81 to SD (or transfer another way).
 3. Ethernet connected; DNS (or reachable host) for your LiteLLM gateway.
 4. `LOAD"MEGAMIND"` then `RUN` (or your usual autoload).
@@ -150,17 +154,26 @@ Optional overrides: `PETCAT=/path/to/petcat` `C1541=/path/to/c1541`.
 
 ## LiteLLM gateway (for LAN HTTP)
 
-MEGAMind needs an HTTP OpenAI-compatible endpoint. This repo ships two install paths:
+MEGAMind needs an HTTP OpenAI-compatible endpoint. Everything lives under **`gateway/`**.
+
+### Environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `LITELLM_MASTER_KEY` | Bearer token for MEGAMind (`TOKEN=`), default `retrosystem` |
+| `UPSTREAM_API_BASE` | Upstream HTTPS base URL (OpenAI-compatible `/v1`) |
+| `UPSTREAM_API_KEY` | Upstream API key |
+
+Details: [gateway/README.md](gateway/README.md).
 
 ### A) Manual Docker Compose
 
 See **[gateway/INSTALL.md](gateway/INSTALL.md)**.
 
-Short version:
-
 ```bash
 cd gateway
 cp .env.sample .env   # set UPSTREAM_API_BASE and UPSTREAM_API_KEY
+docker compose config # confirm env is interpolated
 docker compose up -d
 ```
 
@@ -175,9 +188,9 @@ curl -sS -X POST "http://127.0.0.1:4000/v1/chat/completions" \
 
 ### B) AI installer
 
-Feed an agent (Cursor, etc.) the prompt in **[litellm-gateway-prompt.txt](litellm-gateway-prompt.txt)**. It instructs the agent to install the same HTTP-only LiteLLM Compose stack, verify with `curl`, and report LAN IP / port / path for MEGAMind.
+Open **[gateway/AI_INSTALLER.md](gateway/AI_INSTALLER.md)** and paste the prompt block into an AI agent (Cursor, etc.). The agent installs/configures the same Compose stack, verifies with `curl`, and reports LAN IP / port / path for MEGAMind.
 
-Set `UPSTREAM_API_BASE` and `UPSTREAM_API_KEY` in `.env` (see `.env.sample`). **Do not commit real API keys.**
+**Do not commit real API keys.**
 
 ---
 

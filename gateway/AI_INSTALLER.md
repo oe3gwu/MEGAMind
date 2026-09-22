@@ -1,4 +1,8 @@
-# LiteLLM HTTP Gateway (Docker Compose) — AI installer prompt
+# AI installer — LiteLLM HTTP gateway (Docker Compose)
+
+Copy everything below the line into an AI agent (Cursor, etc.). The agent installs the same stack as the manual guide in [`INSTALL.md`](INSTALL.md). Prefer using this repo’s `gateway/` folder when it is already checked out.
+
+---
 
 Install LiteLLM as a local HTTP gateway on this system **using Docker Compose only**. No database.
 
@@ -12,11 +16,15 @@ Install LiteLLM as a local HTTP gateway on this system **using Docker Compose on
 - No Postgres/Redis/DB — LiteLLM proxy container only
 - Autostart via Docker `restart: unless-stopped`
 
+## Prefer existing files
+
+If this repository’s `gateway/` directory is present, **reuse** `docker-compose.yml`, `config.yaml`, and `.env.sample` instead of rewriting them. Only create those files when missing. Always create/update `.env` from `.env.sample` with operator secrets.
+
 ## Work steps
 
 1. Check Docker and Docker Compose. Install them if missing.
-2. Create an install directory, e.g. `/opt/litellm-gateway/` (or use this repo’s `gateway/` folder).
-3. Write `docker-compose.yml`. Prefer reading secrets from a `.env` file; do not hard-code real API keys or upstream URLs into committed files:
+2. Working directory: this repo’s `gateway/` folder, or e.g. `/opt/litellm-gateway/` if installing elsewhere.
+3. Ensure `docker-compose.yml` exists (create only if missing). Prefer reading secrets from a `.env` file; do not hard-code real API keys or upstream URLs into committed files:
 
 ```yaml
 services:
@@ -35,7 +43,7 @@ services:
     command: ["--config", "/app/config.yaml", "--host", "0.0.0.0", "--port", "4000"]
 ```
 
-4. Write `config.yaml` next to it:
+4. Ensure `config.yaml` exists (create only if missing):
 
 ```yaml
 model_list:
@@ -49,12 +57,13 @@ litellm_settings:
   drop_params: true
 ```
 
-5. Create `.env` from `.env.sample` with:
+5. Create `.env` from `.env.sample` (ask the operator for missing values):
    - `LITELLM_MASTER_KEY` — Bearer token for LAN clients (default `retrosystem` if the operator agrees)
    - `UPSTREAM_API_BASE` — OpenAI-compatible upstream base URL, e.g. `https://api.example.com/v1`
    - `UPSTREAM_API_KEY` — upstream API key supplied by the operator
 6. Start: `docker compose up -d`
-7. Verify:
+7. Verify compose interpolation: `docker compose config` must show non-empty `UPSTREAM_API_BASE` and `UPSTREAM_API_KEY` in the service environment.
+8. Verify API:
 
 ```bash
 curl -sS -X POST "http://127.0.0.1:4000/v1/chat/completions" \
@@ -71,7 +80,7 @@ curl -sS -X POST "http://127.0.0.1:4000/v1/chat/completions" \
 
 ## Final report
 
-Print: host LAN IP, port `4000`, path `/v1/chat/completions`, model name, compose directory path, and a short curl result summary.
+Print: host LAN IP, port `4000`, path `/v1/chat/completions`, model name, compose directory path, env vars set (names only, never print secret values), and a short curl result summary.
 
 ## Client settings (MEGAMind / MEGA65)
 

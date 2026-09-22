@@ -2,6 +2,8 @@
 
 Install a local **HTTP-only** LiteLLM proxy so MEGAMind (MEGA65 + Mega-IP) can call an OpenAI-compatible chat API. Mega-IP has **no TLS**, so the LAN side must stay plain HTTP.
 
+Prefer an agent? Paste **[AI_INSTALLER.md](AI_INSTALLER.md)** into Cursor (or similar). Overview of this folder: **[README.md](README.md)**.
+
 ## Requirements
 
 - Docker Engine
@@ -16,26 +18,48 @@ docker compose version
 
 ```
 gateway/
+  README.md           — folder overview + env var table
+  INSTALL.md          — this manual install
+  AI_INSTALLER.md     — AI agent installer prompt
   docker-compose.yml
   config.yaml
-  .env.sample   → copy to .env
+  .env.sample         → copy to .env
 ```
 
 You may install anywhere, e.g. `/opt/litellm-gateway/` or this `gateway/` folder.
+
+## Environment variables
+
+Copy the sample and edit:
+
+```bash
+cd gateway   # or your install directory
+cp .env.sample .env
+```
+
+| Variable | Example | Used by |
+|----------|---------|---------|
+| `LITELLM_MASTER_KEY` | `retrosystem` | Compose → LiteLLM master key; MEGAMind `TOKEN=` |
+| `UPSTREAM_API_BASE` | `https://api.example.com/v1` | `config.yaml` → `api_base: os.environ/UPSTREAM_API_BASE` |
+| `UPSTREAM_API_KEY` | `sk-…` | `config.yaml` → `api_key: os.environ/UPSTREAM_API_KEY` |
+
+Compose substitutes `${…}` from `.env` into the container environment. Confirm:
+
+```bash
+docker compose config
+```
+
+`UPSTREAM_API_BASE` and `UPSTREAM_API_KEY` must appear non-empty under `services.litellm.environment`.
 
 ## Steps
 
 ### 1. Configure secrets
 
-```bash
-cd gateway   # or your install directory
-cp .env.sample .env
-# Edit .env: set UPSTREAM_API_BASE, UPSTREAM_API_KEY (and optionally LITELLM_MASTER_KEY)
-```
+Edit `.env` as above (`UPSTREAM_API_BASE`, `UPSTREAM_API_KEY`, optional `LITELLM_MASTER_KEY`).
 
 ### 2. Review `config.yaml`
 
-Upstream URL and key are read from the environment (`UPSTREAM_API_BASE`, `UPSTREAM_API_KEY`).  
+Upstream URL and key come only from the environment (no hardcoded provider URL).  
 Default model name (must match MEGAMind `MODEL=`): `Qwen/Qwen3.8-27B-FP8`
 
 Change `model_name` / `model` in `config.yaml` if your provider’s model id differs.
