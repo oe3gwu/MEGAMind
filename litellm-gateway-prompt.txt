@@ -6,7 +6,7 @@ Install LiteLLM as a local HTTP gateway on this system **using Docker Compose on
 
 - Local HTTP only (no HTTPS/TLS on the LAN listener)
 - Bind `0.0.0.0` so LAN devices (retro / MEGA65) can reach it
-- Upstream over HTTPS: `https://llm2go-api.scch.at/v1` (or the URL the operator provides)
+- Upstream over HTTPS via operator-supplied `UPSTREAM_API_BASE` (OpenAI-compatible `/v1`)
 - OpenAI-compatible path: `/v1/chat/completions`
 - Default model: `Qwen/Qwen3.8-27B-FP8`
 - No Postgres/Redis/DB — LiteLLM proxy container only
@@ -16,7 +16,7 @@ Install LiteLLM as a local HTTP gateway on this system **using Docker Compose on
 
 1. Check Docker and Docker Compose. Install them if missing.
 2. Create an install directory, e.g. `/opt/litellm-gateway/` (or use this repo’s `gateway/` folder).
-3. Write `docker-compose.yml`. Prefer reading secrets from a `.env` file; do not hard-code real API keys into committed files:
+3. Write `docker-compose.yml`. Prefer reading secrets from a `.env` file; do not hard-code real API keys or upstream URLs into committed files:
 
 ```yaml
 services:
@@ -28,7 +28,8 @@ services:
       - "4000:4000"
     environment:
       - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-retrosystem}
-      - LLM2GO_API_KEY=${LLM2GO_API_KEY}
+      - UPSTREAM_API_KEY=${UPSTREAM_API_KEY}
+      - UPSTREAM_API_BASE=${UPSTREAM_API_BASE}
     volumes:
       - ./config.yaml:/app/config.yaml:ro
     command: ["--config", "/app/config.yaml", "--host", "0.0.0.0", "--port", "4000"]
@@ -41,16 +42,17 @@ model_list:
   - model_name: Qwen/Qwen3.8-27B-FP8
     litellm_params:
       model: openai/Qwen/Qwen3.8-27B-FP8
-      api_base: https://llm2go-api.scch.at/v1
-      api_key: os.environ/LLM2GO_API_KEY
+      api_base: os.environ/UPSTREAM_API_BASE
+      api_key: os.environ/UPSTREAM_API_KEY
 
 litellm_settings:
   drop_params: true
 ```
 
-5. Create `.env` with:
+5. Create `.env` from `.env.sample` with:
    - `LITELLM_MASTER_KEY` — Bearer token for LAN clients (default `retrosystem` if the operator agrees)
-   - `LLM2GO_API_KEY` — upstream API key supplied by the operator
+   - `UPSTREAM_API_BASE` — OpenAI-compatible upstream base URL, e.g. `https://api.example.com/v1`
+   - `UPSTREAM_API_KEY` — upstream API key supplied by the operator
 6. Start: `docker compose up -d`
 7. Verify:
 

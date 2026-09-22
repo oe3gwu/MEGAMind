@@ -35,7 +35,7 @@ tools/run_xemu.sh           — xemu MEGA65 launcher
 gateway/                    — LiteLLM Docker Compose install
   docker-compose.yml
   config.yaml
-  .env.example
+  .env.sample
   INSTALL.md
 litellm-gateway-prompt.txt  — AI installer prompt (English)
 target/                     — build outputs (gitignored)
@@ -160,7 +160,7 @@ Short version:
 
 ```bash
 cd gateway
-cp .env.example .env   # set LLM2GO_API_KEY
+cp .env.sample .env   # set UPSTREAM_API_BASE and UPSTREAM_API_KEY
 docker compose up -d
 ```
 
@@ -177,7 +177,7 @@ curl -sS -X POST "http://127.0.0.1:4000/v1/chat/completions" \
 
 Feed an agent (Cursor, etc.) the prompt in **[litellm-gateway-prompt.txt](litellm-gateway-prompt.txt)**. It instructs the agent to install the same HTTP-only LiteLLM Compose stack, verify with `curl`, and report LAN IP / port / path for MEGAMind.
 
-Upstream defaults to `https://llm2go-api.scch.at/v1`; override in `config.yaml` / `.env` as needed. **Do not commit real API keys.**
+Set `UPSTREAM_API_BASE` and `UPSTREAM_API_KEY` in `.env` (see `.env.sample`). **Do not commit real API keys.**
 
 ---
 

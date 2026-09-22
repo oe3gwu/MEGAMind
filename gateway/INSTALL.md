@@ -18,7 +18,7 @@ docker compose version
 gateway/
   docker-compose.yml
   config.yaml
-  .env.example   → copy to .env
+  .env.sample   → copy to .env
 ```
 
 You may install anywhere, e.g. `/opt/litellm-gateway/` or this `gateway/` folder.
@@ -29,16 +29,16 @@ You may install anywhere, e.g. `/opt/litellm-gateway/` or this `gateway/` folder
 
 ```bash
 cd gateway   # or your install directory
-cp .env.example .env
-# Edit .env: set LLM2GO_API_KEY (and optionally LITELLM_MASTER_KEY)
+cp .env.sample .env
+# Edit .env: set UPSTREAM_API_BASE, UPSTREAM_API_KEY (and optionally LITELLM_MASTER_KEY)
 ```
 
 ### 2. Review `config.yaml`
 
-Default upstream: `https://llm2go-api.scch.at/v1`  
+Upstream URL and key are read from the environment (`UPSTREAM_API_BASE`, `UPSTREAM_API_KEY`).  
 Default model name (must match MEGAMind `MODEL=`): `Qwen/Qwen3.8-27B-FP8`
 
-Change `api_base` / `model_name` if your provider differs.
+Change `model_name` / `model` in `config.yaml` if your provider’s model id differs.
 
 ### 3. Start
 
